@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Created : Tue 25 Jul 2017 02:19:40 PM EDT
-# Modified: Mon 07 Aug 2017 10:30:13 PM EDT
+# Modified: Tue 15 Aug 2017 11:50:44 AM EDT
 
 from __future__ import print_function
 
@@ -12,6 +12,7 @@ import time
 import pickle
 from pathlib import Path
 from printColor import printColor
+from openwithheader import openWithHeader
 
 
 class NotSudo(Exception):
@@ -36,16 +37,16 @@ def main():
             with open('host_discovery.p', 'rb') as pfile:
                 hosts_seen = pickle.load(pfile)
 
-        with open('host_discovery.log', 'a') as hd_log:
+        with openWithHeader('host_discovery.csv', '\"Date\",\"IP Address\",\"Host name\"') as hd_log:
             while(True):
-                nm.scan(hosts='192.168.1.1/24', arguments='-T3 -F')
+                nm.scan(hosts='192.168.1.1/24', arguments='-T4 -F')
 
                 i = 0
                 for host in nm.all_hosts():
                     if host not in hosts_seen:
                         t = time.asctime()
                         printColor('green', '{}  {}\t{}'.format(t, host, nm[host].hostname()))
-                        print('{}  {}\t{}'.format(t, host, nm[host].hostname()), file=hd_log)
+                        print('\"{}\",\"{}\",\"{}\"'.format(t, host, nm[host].hostname()), file=hd_log)
                         hosts_seen[host] = nm[host].hostname()
                     i += 1
 
@@ -55,7 +56,6 @@ def main():
 
                 t = time.asctime()
                 printColor('yellow', '{}  {} hosts scanned'.format(t, i))
-                print('{}  {} hosts scanned'.format(t, i), file=hd_log)
 
                 time.sleep(30)
     except KeyboardInterrupt:
